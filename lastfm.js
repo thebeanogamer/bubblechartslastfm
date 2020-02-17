@@ -22,7 +22,7 @@ class LastFmClient { // eslint-disable-line no-unused-vars
         const albums = [];
         try {
             const response = await fetch(
-                `http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user=${username}&period=${period}&limit=${limit}&api_key=${this._apikey}&format=json`
+                `https://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user=${username}&period=${period}&limit=${limit}&api_key=${this._apikey}&format=json`
             )
                 .then(response => {
                     if (!response.ok) throw new Error(response.status);
@@ -61,7 +61,7 @@ class LastFmClient { // eslint-disable-line no-unused-vars
         const artists = [];
         try {
             const response = await fetch(
-                `http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=${username}&period=${period}&limit=${limit}&api_key=${this._apikey}&format=json`
+                `https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=${username}&period=${period}&limit=${limit}&api_key=${this._apikey}&format=json`
             )
                 .then(response => {
                     if (!response.ok) throw new Error(response.status);
