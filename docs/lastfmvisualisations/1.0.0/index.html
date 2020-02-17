@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Home - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="BubbleChart.html">BubbleChart</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="BubbleChart.html#render">render</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="BubbleChart.html#shuffle">shuffle</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="LastFmClient.html">LastFmClient</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="LastFmClient.html#createClickHandler">createClickHandler</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="LastFmClient.html#fetchAlbumList">fetchAlbumList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="LastFmClient.html#fetchArtistList">fetchArtistList</a></span></li>
+</nav>
+
+<div id="main">
+    
+
+    
+
+
+
+    
+
+
+
+
+
+
+
+
+
+    
+
+
+    <section class="readme">
+        <article><h1>Bubble Charts for Last.fm</h1>
+<p>This visualisation contains two classes:</p>
+<ul>
+<li>bubblechart.js: Reusable component that renders a bubble chart.</li>
+<li>lastfm.js: A class to get an example data set from Last.fm.</li>
+</ul>
+<p>To use the visualisation, enter a username into the username field and click <strong>'Top Albums'</strong>. Some example usernames:</p>
+<ul>
+<li>danster103 (me)</li>
+<li>thomaspepall</li>
+<li>nicholasfl</li>
+</ul>
+<p>Please wait for the data to load. If an error is returned, an example will be loaded from example.js. Try again as sometimes this can be a temporary issue with the last.fm API.</p>
+<p>You should see a visualisation that looks like this. Bigger circles represent albums that I have streamed more over the last couple years.</p>
+<p><img src="../../../images/screenshot-albums.png" alt="Example"></p>
+<h3>Getting started</h3>
+<p>Import the <code>bubblechart.js</code> script and create a new BubbleChart instance by passing in the svg element that you would like the bubble chart to be rendered in.</p>
+<pre class="prettyprint source lang-javascript"><code>chart = new BubbleChart('svg');
+</code></pre>
+<p>Optionally, you can pass in an object with parameters that you would like to customise.</p>
+<pre class="prettyprint source lang-javascript"><code>chart = new BubbleChart('svg', options);
+</code></pre>
+<p>The options object can contain any of the following properties (by default)</p>
+<pre class="prettyprint source lang-javascript"><code>{
+    width: 600,
+    height: 600,
+    albumArtEnabled: true,
+    mouseoverOpacity: 0.3,
+    power: 1,
+    descriptor: {
+        name: 'Album',
+        value: 'Playcount'
+    }
+};
+</code></pre>
+<h3>Descriptors</h3>
+<p>The descriptors can be set in the constructor, or with the setter. They define the messages that appear before the values in the title element of each bubble. This is visible on mouse hover. In the example, when Top Artists or Top Albums is clicked, the descriptor is changed as follows.</p>
+<pre class="prettyprint source lang-javascript"><code>chart.descriptor = {
+    name: (dataType === 'albums' ? 'Album' : 'Artist'),
+    value: 'Playcount'
+};
+</code></pre>
+<h3>Click Handlers</h3>
+<p>If you would like to perform an action on the chart click, you can set a click handler on the chart object. This needs to be in the form of a function with one parameter, <code>data</code>. When a bubble on the chart is clicked, and a click handler has been defined, the data object associated with the selected bubble is passed to the click handler. This can be used to display a pop-up or redirect to a website with more information. An example click handler:</p>
+<pre class="prettyprint source lang-javascript"><code>function (data) {
+    if (data.id && !data.id.startsWith('!')) {
+        window.open(
+            `https://musicbrainz.org/${data.type}/${data.id}`, '_blank');
+    } else {
+        alert('No associated MusicBrainz ID for this bubble.');
+    }
+};
+</code></pre>
+<h3>Documentation</h3>
+<p>Generate documentation with <code>npm run generate-docs</code>.</p>
+<h3>License</h3>
+<p>Originally based on the d3 bubble chart visualisation here: <a href="https://observablehq.com/@d3/bubble-chart">https://observablehq.com/@d3/bubble-chart</a></p>
+<p>I adapted the code to work in a normal browser, without Observable libraries. There is no direct license on the ObservableHQ page, and therefore the above attribution will have to do.</p>
+<p>The dataset I have chosen is the <a href="https://www.last.fm/api/intro">last.fm API</a>. It's terms of service can be found at the following address <a href="https://www.last.fm/api/tos">https://www.last.fm/api/tos</a>.</p>
+<pre class="prettyprint source"><code>Bubble Charts for Last.fm
+Copyright (C) 2020 Daniel Stone
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see &lt;https://www.gnu.org/licenses/>.
+</code></pre></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Thu Jan 16 2020 13:40:36 GMT+0000 (GMT) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

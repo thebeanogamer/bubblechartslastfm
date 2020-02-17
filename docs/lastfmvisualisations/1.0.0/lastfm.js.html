@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>lastfm.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="BubbleChart.html">BubbleChart</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="BubbleChart.html#render">render</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="BubbleChart.html#shuffle">shuffle</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="LastFmClient.html">LastFmClient</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="LastFmClient.html#createClickHandler">createClickHandler</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="LastFmClient.html#fetchAlbumList">fetchAlbumList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="LastFmClient.html#fetchArtistList">fetchArtistList</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">lastfm.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Class representing the contained Last.fm API calls. Stores the API key.
+ */
+class LastFmClient { // eslint-disable-line no-unused-vars
+    /**
+     * Create an instance of the LastFmClient with provided API key.
+     * @param {string} apikey Last.fm API key that will be used to make API calls. Can be obtained here: https://www.last.fm/api/account/create
+     */
+    constructor (apikey) {
+        this._apikey = apikey;
+    }
+
+    /**
+     * Get list of top albums with playcount, name, id and image. Asynchronous function resolves with result.
+     * Error alert is displayed if an error has occurred.
+     * @param {string} username username of user.
+     * @param {integer} limit Maximum number of albums to fetch.
+     * @param {string} period Timescale to fetch top albums.
+     * @returns {Array} List of top albums for this user
+     */
+    async fetchAlbumList (username, limit, period) {
+        const albums = [];
+        try {
+            const response = await fetch(
+                `http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&amp;user=${username}&amp;period=${period}&amp;limit=${limit}&amp;api_key=${this._apikey}&amp;format=json`
+            )
+                .then(response => {
+                    if (!response.ok) throw new Error(response.status);
+                    return response.json();
+                });
+            response.topalbums.album.forEach(element => {
+                const {
+                    playcount,
+                    name,
+                    mbid
+                } = element;
+                const image = element.image.find(image => image.size === 'extralarge')['#text'];
+                albums.push({
+                    type: 'release',
+                    value: playcount,
+                    name,
+                    image,
+                    id: mbid || ('!' + Math.random().toString(36).substr(2, 12))
+                });
+            });
+        } catch (error) {
+            alert('Failed to fetch: ' + error);
+        }
+        return albums;
+    }
+
+    /**
+     * Get list of top artists with playcount, name, id. Asynchronous function resolves with result.
+     * Error alert is displayed if an error has occurred.
+     * @param {string} username username of user.
+     * @param {integer} limit Maximum number of artists to fetch.
+     * @param {string} period Timescale to fetch top artists.
+     * @returns {Array} List of top artists for this user
+     */
+    async fetchArtistList (username, limit, period) {
+        const artists = [];
+        try {
+            const response = await fetch(
+                `http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&amp;user=${username}&amp;period=${period}&amp;limit=${limit}&amp;api_key=${this._apikey}&amp;format=json`
+            )
+                .then(response => {
+                    if (!response.ok) throw new Error(response.status);
+                    return response.json();
+                });
+            response.topartists.artist.forEach(element => {
+                const {
+                    playcount,
+                    name,
+                    mbid
+                } = element;
+                // let image = element.image.find(image => image.size == "extralarge")['#text']; Disabled by Last.fm API
+                const image = '';
+                artists.push({
+                    type: 'artist',
+                    value: playcount,
+                    name,
+                    image,
+                    id: mbid || ('!' + Math.random().toString(36).substr(2, 12))
+                });
+            });
+        } catch (error) {
+            alert('Failed to fetch: ' + error);
+        }
+        return artists;
+    }
+
+    /**
+     * Create a click handler that can be used with this dataset.
+     * @returns {function} Click handler
+     */
+    createClickHandler () {
+        return function (data) {
+            if (data.id &amp;&amp; !data.id.startsWith('!')) {
+                window.open(
+                    `https://musicbrainz.org/${data.type}/${data.id}`, '_blank');
+            } else {
+                alert(`No associated MusicBrainz ID for ${data.name}.`);
+            }
+        };
+    }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Thu Jan 16 2020 13:40:36 GMT+0000 (GMT) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

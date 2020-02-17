@@ -1,0 +1,226 @@
+<!-- https://observablehq.com/@d3/bubble-chart -->
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="Bubble Charts for Last.Fm">
+    <title>bubble charts for last.fm</title>
+    <!-- Using bulma for styling -->
+    <link rel="stylesheet" type="text/css" href="node_modules/bulma/css/bulma.min.css" />
+    <link rel="stylesheet" type="text/css" href="node_modules/bulma-switch/dist/css/bulma-switch.min.css" />
+    <link rel="stylesheet" type="text/css" href="node_modules/bulma-divider/dist/css/bulma-divider.min.css" />
+    <link rel="stylesheet" type="text/css" href="node_modules/@mdi/font/css/materialdesignicons.min.css" />
+</head>
+<style>
+    html,
+    body {
+        height: 100%;
+    }
+
+    /* Vertical flexbox container no larger than screen height */
+    .container {
+        display: flex;
+        flex-flow: column;
+        height: 100vh;
+    }
+
+    /* Footer margins */
+    #footer {
+        margin: 0.5em 0.5em
+    }
+
+    /* Horizontal flexbox for control elements, centered */
+    #controls {
+        display: flex;
+        align-items: center;
+        padding: 0 1em;
+        justify-content: center;
+    }
+
+    /* Spacing between each control element */
+    #controls>* {
+        margin: 0 0.5em;
+    }
+
+    /* The svg will fill the remaining height in browser (flex: 1) and is horizontally centered. */
+    #svgcontainer {
+        display: flex;
+        flex-flow: column;
+        flex: 1;
+        width: fit-content;
+        align-self: center;
+        justify-content: center;
+    }
+
+    /* Ensure the svg does not exceed the size of it's container */
+    svg {
+        flex-shrink: 1;
+    }
+
+    /* Used to hide either the title or svg depending on state */
+    .hidden {
+        display: none;
+    }
+</style>
+
+<body>
+    <div class="container">
+        <!-- Options for the chart, shown at the top of the screen, horizontal -->
+        <div id="controls">
+            <!-- Username input with my username as placeholder -->
+            <p><a href="www.last.fm">Last.fm</a> username:</p>
+            <input style="width:150px" id="username" class="input is-small is-rounded" type="text"
+                placeholder="danster103">
+            <!-- Buttons for either album or artist - using the same callback. -->
+            <button class="button is-small is-info is-rounded" onclick="buttonHandler(this, 'albums')">Top
+                Albums</button>
+            <button class="button is-small is-info is-light is-rounded"
+                onclick="buttonHandler(this, 'artists')">Artists</button>
+            <!-- Divider -->
+            <div class="is-divider-vertical" data-content="OPTIONS"></div>
+            <!-- Selects for choosing period and number of items -->
+            <div class="select is-rounded is-small">
+                <select id="periodSelect">
+                    <option value="overall" selected>Overall</option>
+                    <option value="7day">7 days</option>
+                    <option value="1month">1 month</option>
+                    <option value="3month">3 months</option>
+                    <option value="6month">6 months</option>
+                    <option value="12month">12 months</option>
+                </select>
+            </div>
+            <div class="select is-rounded is-small">
+                <select id="limitSelect">
+                    <option value="50">Top 50</option>
+                    <option value="100">Top 100</option>
+                    <option value="200" selected>Top 200</option>
+                    <option value="400">Top 400</option>
+                </select>
+            </div>
+            <!-- Switch to enable / disable album art, initally on -->
+            <div class="field">
+                <input id="albumArtSwitch" type="checkbox" name="albumArtSwitch" class="switch is-rounded is-info"
+                    onchange="albumArtHandler(this)" checked="checked">
+                <label for="albumArtSwitch">Album Art</label>
+            </div>
+            <button class="button is-rounded is-small" onclick="shuffleHandler(this)">
+                <span class="icon is-small">
+                    <i class="mdi mdi-shuffle"></i>
+                </span>
+            </button>
+        </div>
+        <!-- Svg container fills the remaining height of the screen -->
+        <div id="svgcontainer">
+            <!-- Horizontally and vertically centered in available space -->
+            <div id="title">
+                <h1 class="title is-1 has-text-centered">bubble charts for last.fm</h1>
+                <p class="subtitle has-text-centered is-4">Enter a <a href="https://last.fm">last.fm</a> username
+                    above.</p>
+            </div>
+            <!-- Fills entire space once title is hidden -->
+            <svg height="100%" class="hidden" id="bubbleChart"></svg>
+        </div>
+        <!-- Footer is just a simple h6 subtitle tag -->
+        <div id="footer">
+            <h6 class="subtitle is-6 is-marginless has-text-centered">bubble charts for last.fm by <a href="https://danstone.uk">Dan Stone</a>. Created with <a href="https://d3js.org/">d3.js</a>, based on <a
+                    href="https://observablehq.com/@d3/bubble-chart">Bubble Chart by Mike Bostock</a>. <strong>Best
+                    viewed on desktop.</strong></h6>
+                    
+                    <p class="has-text-grey is-size-7 has-text-centered"><a href="/docs/lastfmvisualisations/1.0.0/">Documentation</a> - GitHub</p>
+            <p class="has-text-grey is-size-7 has-text-centered" id="hint-text">hover over the bubble chart | click on a bubble to see associated MusicBrainz page</p>
+        </div>
+    </div>
+</body>
+<script src="node_modules/d3/dist/d3.min.js"></script>
+<script src="bubblechart.js"></script>
+<script src="lastfm.js"></script>
+
+<script>
+    const API_KEY = 'c7f21b978aca554925fa95161bc803a7';
+    // Need to ignore errors as they are defined in external js files
+    // eslint-disable-next-line no-undef
+    const lastfmClient = new LastFmClient(API_KEY);
+    // eslint-disable-next-line no-undef
+    const chart = new BubbleChart('svg');
+    // Set a click handler for the chart
+    chart.clickHandler = lastfmClient.createClickHandler();
+    // Generate a pastel colour
+    chart.colourFunction = () => 'hsl(' + 360 * Math.random() + ',' +
+        (30 + 50 * Math.random()) + '%,' + // between 30 and 80
+        (80 + 10 * Math.random()) + '%)'; // between 80 and 90
+
+    // eslint-disable-next-line no-unused-vars
+    async function buttonHandler (button, dataType) {
+        // Update controls with selected dataType
+        updateDataType(dataType);
+
+        // Get username with default set to my username if input is empty
+        const username = document.getElementById('username').value || 'danster103';
+
+        // Enable loading animation on the clicked button
+        button.classList.add('is-loading');
+
+        // Get the period and limit settings
+        const period = document.getElementById('periodSelect').value;
+        const limit = document.getElementById('limitSelect').value;
+
+        // Depending on dataType (button selected), use lastfmClient to get album or artist list
+        let data = null;
+        try {
+            data = await (dataType === 'albums' ? lastfmClient.fetchAlbumList(username, limit, period)
+            : lastfmClient.fetchArtistList(username, limit, period));
+        } catch (error) {
+            // If error, assume an empty list
+            data = [];
+        }
+
+        // Set the descriptors depending on data type (for hover over)
+        chart.descriptor = {
+            name: (dataType === 'albums' ? 'Album' : 'Artist'),
+            value: 'Playcount'
+        };
+
+        // If the data is not empty
+        if (data.length !== 0) {
+            chart.data = data;
+        } else {
+            // Else alert the user and use the json file provided as an example
+            alert(
+                'Error returned from API, using offline example account danster103. Please wait a few seconds and try again - the API can be a little intermittent. Internet required for images since they are loaded from Last.Fm API.'
+            );
+            chart.data = await d3.json('example.json');
+        }
+        // Display the bubble chart and hide the title
+        document.getElementById('bubbleChart').classList.remove('hidden');
+        document.getElementById('title').classList.add('hidden');
+        // Remove loading animation from clicked button
+        button.classList.remove('is-loading');
+    }
+
+    function updateDataType (dataType) {
+        // Reference to the switch (actually a checkbox)
+        const checkbox = document.getElementById('albumArtSwitch');
+        if (dataType === 'artists') {
+            // Artists do not have album art so change checked state and disable control
+            checkbox.checked = false;
+            checkbox.disabled = true;
+            // Propagate this change via change function
+            this.albumArtHandler(checkbox);
+        } else {
+            // Re-enable controls
+            checkbox.disabled = false;
+        }
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    function albumArtHandler (checkbox) {
+        // Send the change in album art checkbox to the chart.
+        chart.albumArtEnabled = checkbox.checked;
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    function shuffleHandler (button) {
+        // Call the shuffle function on the chart when button is pressed
+        chart.shuffle();
+    }
+</script>
