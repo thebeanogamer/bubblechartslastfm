@@ -15,7 +15,7 @@ Please wait for the data to load. If an error is returned, an example will be lo
 
 You should see a visualisation that looks like this. Bigger circles represent albums that I have streamed more over the last couple years. 
 
-![Example](../../../images/screenshot-albums.png)
+![Example](images/screenshot-albums.png)
 
 ### Getting started
 
